@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function Blend() {
   const { sessionId } = useParams();
   const [sessionData, setSessionData] = useState(null);
@@ -11,7 +13,6 @@ function Blend() {
   const [playlistUrl, setPlaylistUrl] = useState('');
 
   useEffect(() => {
-    // First, check for User 2's token in the URL, if it exists
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const accessToken = urlParams.get('access_token');
@@ -19,33 +20,33 @@ function Blend() {
       setToken(accessToken);
     }
 
-    // This function will now poll the server for results
     const pollSessionData = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8888/session/${sessionId}`);
+        const response = await axios.get(`${API_BASE_URL}/session/${sessionId}`);
         const data = response.data;
 
-        // If User 2's data is present, the blend is complete.
         if (data && data.user2Tracks) {
           setSessionData(data);
           setLoading(false);
         } else {
-          // If not, wait 3 seconds and try again.
           setTimeout(pollSessionData, 3000);
         }
       } catch (error) {
         console.error("Error fetching session data:", error);
-        setLoading(false); // Stop loading on error
+        setLoading(false);
       }
     };
 
     pollSessionData();
   }, [sessionId]);
 
+  const handleJoin = () => {
+    window.location.href = `${API_BASE_URL}/login?sessionId=${sessionId}`;
+  };
+
   const savePlaylist = async () => {
     try {
-      // This uses the token for whichever user is on the page
-      const response = await axios.post('http://127.0.0.1:8888/save-playlist', 
+      const response = await axios.post(`${API_BASE_URL}/save-playlist`, 
         { sessionId: sessionId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -55,14 +56,8 @@ function Blend() {
     }
   };
 
-  if (loading) {
-    return <div className="container"><h1>Analyzing music tastes...</h1></div>;
-  }
-
-  if (!sessionData) {
-    // This view is for User 1 checking the page before User 2 joins
-    return <div className="container"><h1>Waiting for friend to join...</h1><p>Once they log in, this page will update automatically.</p></div>;
-  }
+  if (loading) return <div className="container"><h1>Analyzing music tastes...</h1></div>;
+  if (!sessionData) return <div className="container"><h1>Waiting for friend to join...</h1></div>;
 
   const finalPlaylist = [...(sessionData.user1Tracks || []), ...(sessionData.user2Tracks || [])];
 
@@ -81,12 +76,11 @@ function Blend() {
                 </li>
               ))
             ) : (
-              <p>Could not generate playlist. One or both users may not have enough listening history.</p>
+              <p>Could not generate playlist.</p>
             )}
           </ol>
         </div>
         {!playlistUrl ? (
-          // This button will only be clickable for a user who has a token
           <button className="action-button" onClick={savePlaylist} disabled={!token}>
             Save This Playlist to My Spotify
           </button>

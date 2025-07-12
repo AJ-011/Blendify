@@ -1,7 +1,9 @@
 // client/src/Home.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function Home() {
   const [token, setToken] = useState(null);
@@ -18,7 +20,7 @@ function Home() {
 
   const createBlend = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:8888/create-blend', {}, {
+      const response = await axios.post(`${API_BASE_URL}/create-blend`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSessionId(response.data.sessionId);
@@ -32,7 +34,7 @@ function Home() {
       <h1>Blendify</h1>
 
       {!token ? (
-        <a className="login-button" href="http://127.0.0.1:8888/login">Log in with Spotify</a>
+        <a className="login-button" href={`${API_BASE_URL}/login`}>Log in with Spotify</a>
       ) : (
         <div>
           <h2>Welcome!</h2>
@@ -42,13 +44,9 @@ function Home() {
             <div className="session-info">
               <h3>Blend Session Created!</h3>
               <p>Share this link with a friend, or click it to view the blend page:</p>
-              {/* This is now a clickable link to the blend page */}
               <Link to={`/blend/${sessionId}`} className="session-link">
                 {`${window.location.origin}/blend/${sessionId}`}
               </Link>
-              <p style={{fontSize: '0.8rem', marginTop: '1rem'}}>
-                (Wait for your friend to log in before saving the playlist.)
-              </p>
             </div>
           )}
         </div>
