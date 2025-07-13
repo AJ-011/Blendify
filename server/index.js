@@ -10,7 +10,7 @@ const PORT = 8888;
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
+const REDIRECT_URI = process.env.REDIRECT_URI || `http://127.0.0.1:${PORT}/callback`;
 
 const sessions = {};
 
